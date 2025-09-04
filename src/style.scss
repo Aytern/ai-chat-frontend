@@ -1,0 +1,62 @@
+// 重置样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// 全局样式
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+}
+
+// 布局样式
+.page-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// 表单样式
+.form-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+// 聊天界面样式
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: white;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.chat-input-area {
+  padding: 20px;
+  border-top: 1px solid #eaeaea;
+  background: #f9f9f9;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .page-container {
+    padding: 10px;
+  }
+  
+  .form-container {
+    margin: 20px auto;
+    padding: 20px;
+  }
+}
