@@ -4,7 +4,7 @@ import { getToken, removeToken } from '@/utils/auth'
 // 创建axios实例
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
-  timeout: 10000,
+  timeout: 2000000,
   headers: {
     'Content-Type': 'application/json'
   },
