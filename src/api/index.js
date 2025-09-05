@@ -7,7 +7,8 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials:true
 })
 
 // 请求拦截器 - 添加Token
@@ -48,6 +49,7 @@ export const authAPI = {
 export const chatAPI = {
   sendMessage: (data) => api.post('/api/chat/get_response', data),
   getHistory: (params) => api.get('/api/chat/history', { params }),
+  getHistoryById: (id) => api.get(`/api/chat/history/${id}`),
   deleteHistory: (id) => api.delete(`/api/chat/${id}`),
   clearHistory: () => api.delete('/api/chat/clear')
 }
