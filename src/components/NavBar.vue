@@ -7,7 +7,7 @@
     <div class="navbar-menu">
       <div class="navbar-start">
         <router-link to="/chat" class="navbar-item" v-if="isAuthenticated">聊天</router-link>
-        <router-link to="/chat/history" class="navbar-item" v-if="isAuthenticated">历史记录</router-link>
+            <router-link to="/chat/history" class="nav-link">历史记录</router-link>
       </div>
       
       <div class="navbar-end">
