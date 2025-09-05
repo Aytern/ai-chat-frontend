@@ -54,20 +54,45 @@
 </template>
 
 <script>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { chatAPI } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 export default {
   name: 'Chat',
   setup() {
+    const route = useRoute()
     const messages = ref([])
     const inputMessage = ref('')
     const isLoading = ref(false)
     const messagesContainer = ref(null)
     const textareaRef = ref(null)
-    const hasLoadedHistory = ref(false) // ✅ 只加载一次标记
-    //新增清空聊天记录
+
+    // 监听路由变化，如果有historyId参数则加载特定历史记录
+    watch(() => route.query.historyId, (newId) => {
+      if (newId) {
+        loadSpecificHistory(newId)
+      }
+    })
+
+    // 加载特定历史记录
+    const loadSpecificHistory = async (historyId) => {
+      try {
+        const response = await chatAPI.getHistoryById(historyId)
+        if (response.success) {
+          messages.value = response.data.messages || []
+          scrollToBottom()
+        } else {
+          ElMessage.error(response.message || '加载历史记录失败')
+        }
+      } catch (error) {
+        console.error('加载特定历史记录失败:', error)
+        ElMessage.error('加载历史记录失败')
+      }
+    }
+
+    // 清空聊天记录
     const clearChatHistory = async () => {
       try {
         await ElMessageBox.confirm('确定要清空所有聊天记录吗?', '提示', {
@@ -90,6 +115,7 @@ export default {
         }
       }
     }
+    
     // 发送消息
     const sendMessage = async () => {
       if (!inputMessage.value.trim() || isLoading.value) return
@@ -144,14 +170,9 @@ export default {
       })
     }
 
-    // 开始新对话
-    const startNewChat = async () => {
-      try {
-        await chatAPI.clearHistory()
-        messages.value = [] // 清空消息
-      } catch (error) {
-        console.error('清空历史失败:', error)
-      }
+    // 开始新对话 - 修改为只清空前端消息，不调用API
+    const startNewChat = () => {
+      messages.value = [] // 只清空前端消息
     }
 
     // 格式化时间
@@ -161,24 +182,15 @@ export default {
         minute: '2-digit'
       })
     }
-
-    // 只在首次挂载时加载历史
     onMounted(() => {
-      if (!hasLoadedHistory.value) {
-        loadChatHistory()
-        hasLoadedHistory.value = true
+      // 检查URL中是否有历史记录ID参数
+      if (route.query.historyId) {
+        loadSpecificHistory(route.query.historyId)
       }
     })
 
-    const loadChatHistory = async () => {
-      try {
-        const history = await chatAPI.getHistory()
-        messages.value = history.data
-        scrollToBottom()
-      } catch (error) {
-        console.error('加载历史记录失败:', error)
-      }
-    }
+    // 移除自动加载历史记录的代码
+    // 历史记录将通过导航栏的"历史记录"链接在ChatHistory.vue中查看
 
     return {
       messages,
