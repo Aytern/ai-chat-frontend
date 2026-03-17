@@ -81,6 +81,12 @@ export const getAuthHeader = () => {
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
+// 检查当前用户是否为管理员
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  return user && (user.role === 'admin' || user.is_admin === true);
+};
+
 // 兼容旧的 import
 export const getToken = () => {
   return sessionStorage.getItem('token');

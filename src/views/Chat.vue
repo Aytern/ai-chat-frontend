@@ -2,8 +2,24 @@
   <div class="chat-container">
     <div class="chat-header">
       <h2>AI 智能助手</h2>
-      <button @click="startNewChat" class="new-chat-btn">新对话</button>
-      <button @click="clearChatHistory" class="clear-chat-btn" :disabled="messages.length === 0">清空记录</button>
+      <div class="header-actions">
+        <el-select
+          v-model="selectedModel"
+          placeholder="选择模型"
+          size="small"
+          style="width: 180px;"
+          :loading="modelsLoading"
+        >
+          <el-option
+            v-for="model in availableModels"
+            :key="model.model_id"
+            :label="model.name"
+            :value="model.model_id"
+          />
+        </el-select>
+        <button @click="startNewChat" class="new-chat-btn">新对话</button>
+        <button @click="clearChatHistory" class="clear-chat-btn" :disabled="messages.length === 0">清空记录</button>
+      </div>
     </div>
     
     <div class="chat-messages" ref="messagesContainer">
@@ -56,7 +72,7 @@
 <script>
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { chatAPI } from '@/api'
+import { chatAPI, modelAPI } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 export default {
@@ -68,6 +84,25 @@ export default {
     const isLoading = ref(false)
     const messagesContainer = ref(null)
     const textareaRef = ref(null)
+    const availableModels = ref([])
+    const selectedModel = ref('')
+    const modelsLoading = ref(false)
+
+    // 加载可用模型列表
+    const loadModels = async () => {
+      modelsLoading.value = true
+      try {
+        const response = await modelAPI.getAvailableModels()
+        availableModels.value = response.data || response || []
+        if (availableModels.value.length > 0) {
+          selectedModel.value = availableModels.value[0].model_id
+        }
+      } catch (error) {
+        console.error('加载模型列表失败:', error)
+      } finally {
+        modelsLoading.value = false
+      }
+    }
 
     // 监听路由变化，如果有historyId参数则加载特定历史记录
     watch(() => route.query.historyId, (newId) => {
@@ -134,7 +169,7 @@ export default {
       scrollToBottom()
 
       try {
-        const response = await chatAPI.sendMessage({ text: currentInput })
+        const response = await chatAPI.sendMessage({ text: currentInput, model: selectedModel.value || undefined })
 
         const aiMessage = {
           role: 'assistant',
@@ -145,6 +180,22 @@ export default {
         messages.value.push(aiMessage)
       } catch (error) {
         console.error('发送消息失败:', error)
+        const serverMsg = error.response?.data?.message || error.response?.data?.error || ''
+        if (
+          serverMsg.toLowerCase().includes('model is not available') ||
+          serverMsg.toLowerCase().includes('not available') ||
+          serverMsg.toLowerCase().includes('not enabled')
+        ) {
+          ElMessage({
+            type: 'error',
+            duration: 6000,
+            message: `所选模型不可用：${serverMsg}。请前往「管理 → 模型管理」启用该模型，或选择其他可用模型。`
+          })
+        } else if (serverMsg) {
+          ElMessage.error(serverMsg)
+        } else {
+          ElMessage.error('发送消息失败，请稍后重试')
+        }
       } finally {
         isLoading.value = false
         scrollToBottom()
@@ -183,6 +234,7 @@ export default {
       })
     }
     onMounted(() => {
+      loadModels()
       // 检查URL中是否有历史记录ID参数
       if (route.query.historyId) {
         loadSpecificHistory(route.query.historyId)
@@ -198,6 +250,9 @@ export default {
       isLoading,
       messagesContainer,
       textareaRef,
+      availableModels,
+      selectedModel,
+      modelsLoading,
       sendMessage,
       startNewChat,
       autoResizeTextarea,

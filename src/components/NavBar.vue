@@ -8,6 +8,7 @@
       <div class="navbar-start">
         <router-link to="/chat" class="navbar-item" v-if="isAuthenticated">聊天</router-link>
             <router-link to="/chat/history" class="nav-link">历史记录</router-link>
+            <router-link to="/admin/models" class="navbar-item" v-if="isAdmin">模型管理</router-link>
       </div>
       
       <div class="navbar-end">
@@ -34,7 +35,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getCurrentUser, isAuthenticated, logout } from '@/utils/auth'
+import { getCurrentUser, isAuthenticated, isAdmin, logout } from '@/utils/auth'
 
 export default {
   name: 'NavBar',
@@ -42,10 +43,12 @@ export default {
     const router = useRouter()
     const currentUser = ref(null)
     const authenticated = ref(false)
+    const admin = ref(false)
     
     const updateAuthState = () => {
       currentUser.value = getCurrentUser()
       authenticated.value = isAuthenticated()
+      admin.value = isAdmin()
     }
     
     const handleLogout = () => {
@@ -60,6 +63,7 @@ export default {
     return {
       currentUser,
       isAuthenticated: authenticated,
+      isAdmin: admin,
       handleLogout,
       updateAuthState
     }
