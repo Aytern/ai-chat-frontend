@@ -54,6 +54,10 @@ export const chatAPI = {
   clearHistory: () => api.delete('/api/chat/clear')
 }
 
+export const modelAPI = {
+  getAvailableModels: () => api.get('/api/models')
+}
+
 export const userAPI = {
   getInfo: () => api.get('/api/users/me'),
   updateInfo: (data) => api.put('/api/users/me', data)
