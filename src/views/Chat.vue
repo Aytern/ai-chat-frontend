@@ -2,6 +2,20 @@
   <div class="chat-container">
     <div class="chat-header">
       <h2>AI 智能助手</h2>
+      <div class="model-selector-wrapper">
+        <label for="model-select" class="model-label">模型：</label>
+        <select id="model-select" v-model="selectedModel" class="model-select" :disabled="isLoading">
+          <optgroup label="Claude (Anthropic)">
+            <option value="claude-opus-4-5">Claude Opus 4.5</option>
+            <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>
+            <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet（代码增强）</option>
+            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet（代码增强）</option>
+          </optgroup>
+          <optgroup label="其他模型">
+            <option value="default">默认模型</option>
+          </optgroup>
+        </select>
+      </div>
       <button @click="startNewChat" class="new-chat-btn">新对话</button>
       <button @click="clearChatHistory" class="clear-chat-btn" :disabled="messages.length === 0">清空记录</button>
     </div>
@@ -68,6 +82,7 @@ export default {
     const isLoading = ref(false)
     const messagesContainer = ref(null)
     const textareaRef = ref(null)
+    const selectedModel = ref('claude-3-5-sonnet-20241022')
 
     // 监听路由变化，如果有historyId参数则加载特定历史记录
     watch(() => route.query.historyId, (newId) => {
@@ -134,7 +149,7 @@ export default {
       scrollToBottom()
 
       try {
-        const response = await chatAPI.sendMessage({ text: currentInput })
+        const response = await chatAPI.sendMessage({ text: currentInput, model: selectedModel.value })
 
         const aiMessage = {
           role: 'assistant',
@@ -198,6 +213,7 @@ export default {
       isLoading,
       messagesContainer,
       textareaRef,
+      selectedModel,
       sendMessage,
       startNewChat,
       autoResizeTextarea,
@@ -250,6 +266,43 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.model-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.model-label {
+  font-size: 0.875rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.model-select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  background: #f9f9f9;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  max-width: 260px;
+}
+
+.model-select:focus {
+  border-color: #007aff;
+}
+
+.model-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .chat-messages {
